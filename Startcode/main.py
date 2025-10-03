@@ -1,15 +1,15 @@
 from Startcode.recept import Recept
 from Startcode.ingredient import Ingredient
 from Startcode.stap import Stap
-from Startcode.pdf_export import export_recept_pdf
-import os
 
-# ===== Invoerhelpers =====
+# ==== invoerhelpers ====
 def _yn(prompt: str) -> bool:
     while True:
         ans = input(prompt + " (j/n): ").strip().lower()
-        if ans in ("j", "ja", "y", "yes"): return True
-        if ans in ("n", "nee", "no"): return False
+        if ans in ("j", "ja", "y", "yes"):
+            return True
+        if ans in ("n", "nee", "no"):
+            return False
         print("Antwoord met j of n.")
 
 def _int(prompt: str, min_value: int | None = None) -> int:
@@ -35,43 +35,41 @@ def _float(prompt: str, min_value: float | None = None) -> float:
 def _text(prompt: str) -> str:
     while True:
         t = input(prompt).strip()
-        if t: return t
+        if t:
+            return t
         print("Leeg is niet toegestaan.")
 
-# ===== Nieuw recept interactief (FR-6) =====
+# ==== recept toevoegen (FR-6) ====
 def voeg_recept_toe_interactief() -> Recept:
     print("\n=== Nieuw recept toevoegen ===")
     naam = _text("Naam: ")
     omschrijving = _text("Korte omschrijving: ")
     recept = Recept(naam, omschrijving)
 
-    # ingrediënten (met kcal en optioneel plantaardig alternatief)
     while _yn("Ingrediënt toevoegen?"):
         in_naam = _text("Ingrediëntnaam: ")
         hoeveelheid = _float("Hoeveelheid (voor 1 persoon): ", 0.0)
         eenheid = _text("Eenheid (bijv. gram, ml, stuk): ")
-        kcal_per_eenheid = _float("kcal per eenheid (bijv. per gram/ml/stuk): ", 0.0)
+        kcal_per_eenheid = _float("kcal per eenheid: ", 0.0)
         ing = Ingredient(in_naam, hoeveelheid, eenheid, kcal_per_eenheid)
 
         if _yn("Plantaardig alternatief opgeven?"):
             alt_naam = _text("Alternatief naam: ")
-            # zelfde hoeveelheid/eenheid voor het alternatief
             alt_kcal = _float("kcal per eenheid (alternatief): ", 0.0)
             alt = Ingredient(alt_naam, hoeveelheid, eenheid, alt_kcal)
             ing.set_plantaardig_alternatief(alt)
 
         recept.voeg_ingredient_toe(ing)
 
-    # stappen (met optionele tip)
     while _yn("Bereidingsstap toevoegen?"):
         beschrijving = _text("Stap: ")
-        tip = _text("Tip (of leeg laten): ") if _yn("Tip toevoegen bij deze stap?") else None
+        tip = _text("Tip: ") if _yn("Tip toevoegen bij deze stap?") else None
         recept.voeg_stap_toe(Stap(beschrijving, tip))
 
     print(f"\nRecept '{naam}' toegevoegd.\n")
     return recept
 
-# ===== Recept tonen met personen/plantaardig en optie verwijderen (FR-2,3,4 + FR-7) =====
+# ==== recept tonen (FR-2,3,4 + FR-7) ====
 def toon_recept_interactief(recepten: list[Recept], idx: int) -> None:
     if idx < 0 or idx >= len(recepten):
         print("Ongeldige keuze.")
@@ -86,20 +84,11 @@ def toon_recept_interactief(recepten: list[Recept], idx: int) -> None:
     totaal = gekozen.totaal_kcal(plantaardig=plantaardig)
     print(f"\nTotaal kcal: {round(totaal, 1)}\n")
 
-    # FR-9: export naar PDF
-    if _yn("Dit recept als PDF exporteren?"):
-        os.makedirs("exports", exist_ok=True)
-        bestandsnaam = gekozen.get_naam().replace(" ", "_").lower() + ".pdf"
-        pad = os.path.join("exports", bestandsnaam)
-        pad = export_recept_pdf(gekozen, aantal, plantaardig, pad)
-        print(f"PDF opgeslagen als: {pad}")
-
-    # FR-7: verwijderen
     if _yn("Dit recept verwijderen?"):
         verwijderd = recepten.pop(idx)
         print(f"Recept '{verwijderd.get_naam()}' is verwijderd.\n")
 
-# ===== Overzicht + keuze =====
+# ==== overzicht ====
 def toon_overzicht(recepten: list[Recept]) -> None:
     if not recepten:
         print("\nGeen recepten beschikbaar.\n")
@@ -118,11 +107,11 @@ def kies_recept_index(recepten: list[Recept]) -> int | None:
         return None
     return keuze - 1
 
-# ===== Init startrecepten (week 1 basis) =====
+# ==== startrecepten (FR-1 basis) ====
 def init_startrecepten() -> list[Recept]:
     recepten: list[Recept] = []
 
-    # Recept 1: Kip Kerrie
+    # Recept 1
     r1 = Recept("Kip Kerrie", "Kip kerrie zonder pakjes en zakjes")
     kip = Ingredient("Kipfilet", 200, "gram", 1.65)
     tofu = Ingredient("Tofu", 200, "gram", 0.76)
@@ -132,13 +121,13 @@ def init_startrecepten() -> list[Recept]:
     r1.voeg_ingredient_toe(Ingredient("Rijst (droog)", 75, "gram", 3.6))
     r1.voeg_ingredient_toe(Ingredient("Kerriepoeder", 1, "el", 20))
     r1.voeg_ingredient_toe(Ingredient("Ui", 1, "stuk", 40))
-    r1.voeg_stap_toe(Stap("Kook de rijst volgens de aanwijzingen op de verpakking."))
-    r1.voeg_stap_toe(Stap("Snijd de kipfilet in blokjes en de ui fijn."))
-    r1.voeg_stap_toe(Stap("Bak de kip en ui in een pan en voeg kerriepoeder toe.", tip="Scheutje water tegen aanbakken."))
-    r1.voeg_stap_toe(Stap("Voeg de sperziebonen toe en laat even mee garen."))
+    r1.voeg_stap_toe(Stap("Kook de rijst volgens de aanwijzingen."))
+    r1.voeg_stap_toe(Stap("Snijd de kip en de ui."))
+    r1.voeg_stap_toe(Stap("Bak de kip en ui met kerriepoeder.", tip="Scheutje water tegen aanbakken."))
+    r1.voeg_stap_toe(Stap("Voeg sperziebonen toe en laat garen."))
     recepten.append(r1)
 
-    # Recept 2: Pannenkoeken
+    # Recept 2
     r2 = Recept("Pannenkoeken", "Luchtige pannenkoeken voor 1 persoon.")
     r2.voeg_ingredient_toe(Ingredient("Bloem", 100, "gram", 3.64))
     r2.voeg_ingredient_toe(Ingredient("Melk", 200, "ml", 0.65))
@@ -148,12 +137,12 @@ def init_startrecepten() -> list[Recept]:
     r2.voeg_ingredient_toe(ei)
     r2.voeg_ingredient_toe(Ingredient("Boter", 10, "gram", 7.2))
     r2.voeg_ingredient_toe(Ingredient("Zout", 1, "snufje", 0))
-    r2.voeg_stap_toe(Stap("Meng bloem, melk, ei en zout tot een glad beslag.", tip="Laat 10 minuten rusten."))
-    r2.voeg_stap_toe(Stap("Verhit boter in een koekenpan."))
-    r2.voeg_stap_toe(Stap("Bak het beslag tot een dunne pannenkoek."))
+    r2.voeg_stap_toe(Stap("Meng alles tot beslag.", tip="Laat 10 minuten rusten."))
+    r2.voeg_stap_toe(Stap("Verhit boter in een pan."))
+    r2.voeg_stap_toe(Stap("Bak het beslag tot een pannenkoek."))
     recepten.append(r2)
 
-    # Recept 3: Omelet
+    # Recept 3
     r3 = Recept("Omelet", "Snelle omelet met groenten.")
     ei2 = Ingredient("Ei", 2, "stuks", 78)
     kikkererwtenmeel = Ingredient("Kikkererwtenmeel + water", 120, "gram/ml", 1.1)
@@ -163,15 +152,15 @@ def init_startrecepten() -> list[Recept]:
     r3.voeg_ingredient_toe(Ingredient("Ui", 0.5, "stuk", 20))
     r3.voeg_ingredient_toe(Ingredient("Boter/olie", 10, "gram", 9))
     r3.voeg_ingredient_toe(Ingredient("Peper en zout", 1, "snufje", 0))
-    r3.voeg_stap_toe(Stap("Snijd de paprika en ui in kleine stukjes."))
-    r3.voeg_stap_toe(Stap("Klop de eieren los met peper en zout.", tip="Een scheutje water maakt het luchtiger."))
-    r3.voeg_stap_toe(Stap("Bak de groenten kort in boter/olie."))
-    r3.voeg_stap_toe(Stap("Voeg het eimengsel toe en bak de omelet gaar."))
+    r3.voeg_stap_toe(Stap("Snijd paprika en ui."))
+    r3.voeg_stap_toe(Stap("Klop de eieren los met peper en zout.", tip="Scheutje water maakt luchtiger."))
+    r3.voeg_stap_toe(Stap("Bak groenten kort."))
+    r3.voeg_stap_toe(Stap("Voeg eimengsel toe en bak gaar."))
     recepten.append(r3)
 
     return recepten
 
-# ===== Hoofdmenu (FR-8) =====
+# ==== hoofdmenu (FR-8) ====
 def hoofdmenu(recepten: list[Recept]) -> None:
     while True:
         print("\n=== Receptenboek ===")
@@ -200,4 +189,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
