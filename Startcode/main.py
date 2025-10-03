@@ -83,4 +83,70 @@ def main():
 
 if __name__ == "__main__":
     main()
+# ==== Helpers voor invoer ====
+def _yn(prompt: str) -> bool:
+    while True:
+        ans = input(prompt + " (j/n): ").strip().lower()
+        if ans in ("j", "ja", "y", "yes"): return True
+        if ans in ("n", "nee", "no"): return False
+        print("Foutieve invoer. Antwoord met j of n.")
+
+def _int(prompt: str, min_value: int = None) -> int:
+    while True:
+        try:
+            v = int(input(prompt))
+            if min_value is not None and v < min_value:
+                print(f"Geef minimaal {min_value} op."); continue
+            return v
+        except ValueError:
+            print("Foutieve invoer. Geef een geheel getal op.")
+
+def _float(prompt: str, min_value: float = None) -> float:
+    while True:
+        try:
+            v = float(input(prompt))
+            if min_value is not None and v < min_value:
+                print(f"Geef een waarde ≥ {min_value} op."); continue
+            return v
+        except ValueError:
+            print("Foutieve invoer. Geef een getal op.")
+
+def _text(prompt: str) -> str:
+    while True:
+        t = input(prompt).strip()
+        if t: return t
+        print("Leeg is niet toegestaan.")
+
+# ==== Nieuw recept toevoegen ====
+from recept import Recept
+from ingredient import Ingredient
+from stap import Stap
+
+def voeg_recept_toe_interactief() -> Recept:
+    print("\n=== Nieuw recept toevoegen ===")
+    naam = _text("Naam van het recept: ")
+    omschrijving = _text("Korte omschrijving: ")
+    recept = Recept(naam, omschrijving)
+
+    # Ingrediënten
+    while _yn("Ingrediënt toevoegen?"):
+        in_naam = _text("Naam ingrediënt: ")
+        hoeveelheid = _float("Hoeveelheid: ", 0.0)
+        eenheid = _text("Eenheid (bijv. gram, stuks): ")
+        kcal = _float("Aantal kcal: ", 0.0)
+        alternatief = None
+        if _yn("Plantaardig alternatief opgeven?"):
+            alternatief = _text("Naam alternatief: ")
+        recept.voeg_ingredient_toe(Ingredient(in_naam, hoeveelheid, eenheid, kcal, alternatief))
+
+    # Stappen
+    while _yn("Bereidingsstap toevoegen?"):
+        beschrijving = _text("Stap: ")
+        tip = None
+        if _yn("Tip toevoegen bij deze stap?"):
+            tip = _text("Tip: ")
+        recept.voeg_stap_toe(Stap(beschrijving, tip))
+
+    print(f"\nRecept '{naam}' toegevoegd!\n")
+    return recept
 
