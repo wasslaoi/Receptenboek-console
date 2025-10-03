@@ -1,6 +1,8 @@
 from Startcode.recept import Recept
 from Startcode.ingredient import Ingredient
 from Startcode.stap import Stap
+from Startcode.pdf_export import export_recept_pdf
+import os
 
 # ===== Invoerhelpers =====
 def _yn(prompt: str) -> bool:
@@ -84,6 +86,15 @@ def toon_recept_interactief(recepten: list[Recept], idx: int) -> None:
     totaal = gekozen.totaal_kcal(plantaardig=plantaardig)
     print(f"\nTotaal kcal: {round(totaal, 1)}\n")
 
+    # FR-9: export naar PDF
+    if _yn("Dit recept als PDF exporteren?"):
+        os.makedirs("exports", exist_ok=True)
+        bestandsnaam = gekozen.get_naam().replace(" ", "_").lower() + ".pdf"
+        pad = os.path.join("exports", bestandsnaam)
+        pad = export_recept_pdf(gekozen, aantal, plantaardig, pad)
+        print(f"PDF opgeslagen als: {pad}")
+
+    # FR-7: verwijderen
     if _yn("Dit recept verwijderen?"):
         verwijderd = recepten.pop(idx)
         print(f"Recept '{verwijderd.get_naam()}' is verwijderd.\n")
